@@ -1,75 +1,20 @@
-import React, { useContext, useRef } from "react";
-import { Button, Col, Container, Form, Navbar } from "react-bootstrap";
-import Row from 'react-bootstrap/Row';
-import { AuthContext } from "./context/AuthContext";
-import { auth } from "./firebase";
+import React from "react";
+import {BrowserRouter, Routes, Route } from 'react-router-dom'
+import SignIn from "./pages/signIn";
+import Home from "./pages/home";
+import Dashboard from "./pages/dashboard";
+
 
 function App() {
-  const user = useContext(AuthContext);
-
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-
-const signIn = async () => {
-  try {
-    await auth.signInWithEmailAndPassword(
-      emailRef.current!.value,
-      passwordRef.current!.value
-    )
-    const user = auth.currentUser;
-    if (user) {
-      const idToken = await user.getIdToken();
-      console.log('idToken:', idToken);
-    }
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const signOut = async () => {
-  await auth.signOut();
-};
-
-return (
-  <>
-    <Navbar className="justify-content-between" bg="dark" variant="dark">
-      <Navbar.Brand>Firebase Authentication</Navbar.Brand>
-      {user && <Button onClick={signOut}>Sign Out</Button>}
-    </Navbar>
-    {!user ? (
-      <Container style={{ maxWidth: "500px" }} fluid>
-        <Form className="mt-4">
-          <Form.Group controlId="formEmail">
-            <Form.Label>Email</Form.Label>
-            <Form.Control ref={emailRef} type="email" placeholder="email" />
-          </Form.Group>
-          <Form.Group controlId="formPassword">
-            <Form.Label>Password</Form.Label>
-            <Form.Control
-              ref={passwordRef}
-              type="password"
-              placeholder="password"
-            />
-          </Form.Group>
-          <Row>
-            <Col xs={6}>
-              <Button
-                onClick={signIn}
-                type="button"
-                variant="secondary"
-              >
-                Sign In
-              </Button>
-            </Col>
-          </Row>
-        </Form>
-      </Container>
-    ) : (
-      <h2 className="mt-4 text-center">Welcome {user.email}</h2>
-    )}
-  </>
-);
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
