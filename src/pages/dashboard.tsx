@@ -46,28 +46,31 @@ const Dashboard: React.FC = () => {
   const [redirectToSignIn, setRedirectToSignIn] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      navigate('/signin');
+    } else {
+      setLoading(true); // Show the loading spinner when the component mounts
+      // Fetch user's data when the component mounts
+      fetchUserData().finally(() => {
+        setLoading(false); // Hide the loading spinner after fetching data
+      });
+    }
+  }, [navigate]);
+
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const newValue = name === 'users' || name === 'products' ? parseInt(value, 10) : value;
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: newValue,
+      percentage: name === 'users' || name === 'products' ? calculatePercentage(prevFormData) : prevFormData.percentage,
     }));
-    if (name === 'users' || name === 'products') {
-      const { users, products } = formData;
-      if (users > 0 && products > 0) {
-        const calculatedPercentage = (products / users) * 100;
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          percentage: calculatedPercentage,
-        }));
-      } else {
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          percentage: 0,
-        }));
-      }
-    }
+  };
+
+  const calculatePercentage = (data: FormData) => {
+    return data.users > 0 && data.products > 0 ? (data.users / data.products) * 100 : 0;
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -113,16 +116,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      navigate('/signin');
-    } else {
-      // Fetch user's data when the component mounts
-      fetchUserData();
-    }
-  }, [navigate]);
-
   axios.interceptors.response.use(
     (response: AxiosResponse) => {
       return response;
@@ -154,8 +147,9 @@ const Dashboard: React.FC = () => {
       <Button variant="contained" color="secondary" onClick={handleLogout} style={{ marginBottom: '1rem' }}>
         Logout
       </Button>
+      {loading && <CircularProgress />} {/* Show loading spinner while loading */}
       <form onSubmit={handleSubmit}>
-      <TextField
+        <TextField
           label="Company Name"
           variant="outlined"
           name="companyName"
@@ -193,7 +187,7 @@ const Dashboard: React.FC = () => {
           </Button>
         )}
       </form>
-      {loading ? (
+      {loading ? ( // Show loading spinner while loading
         <CircularProgress />
       ) : (
         <>
