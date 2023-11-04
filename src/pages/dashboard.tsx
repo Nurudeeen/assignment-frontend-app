@@ -46,27 +46,21 @@ const Dashboard: React.FC = () => {
   const [redirectToSignIn, setRedirectToSignIn] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      navigate('/signin');
-    } else {
-      setLoading(true); // Show the loading spinner when the component mounts
-      // Fetch user's data when the component mounts
-      fetchUserData().finally(() => {
-        setLoading(false); // Hide the loading spinner after fetching data
-      });
-    }
-  }, [navigate]);
-
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const newValue = name === 'users' || name === 'products' ? parseInt(value, 10) : value;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
+    const updatedFormData = {
+      ...formData,
       [name]: newValue,
-      percentage: name === 'users' || name === 'products' ? calculatePercentage(prevFormData) : prevFormData.percentage,
-    }));
+    };
+
+    // Calculate the percentage here
+    const updatedPercentage = calculatePercentage(updatedFormData);
+
+    setFormData({
+      ...updatedFormData,
+      percentage: updatedPercentage,
+    });
   };
 
   const calculatePercentage = (data: FormData) => {
@@ -97,7 +91,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Function to fetch user's data
   const fetchUserData = async () => {
     const token = sessionStorage.getItem('token');
     if (!token) {
@@ -129,10 +122,16 @@ const Dashboard: React.FC = () => {
   );
 
   useEffect(() => {
-    if (redirectToSignIn) {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
       navigate('/signin');
+    } else {
+      setLoading(true);
+      fetchUserData().finally(() => {
+        setLoading(false);
+      });
     }
-  }, [redirectToSignIn, navigate]);
+  }, [navigate]);
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -147,7 +146,7 @@ const Dashboard: React.FC = () => {
       <Button variant="contained" color="secondary" onClick={handleLogout} style={{ marginBottom: '1rem' }}>
         Logout
       </Button>
-      {loading && <CircularProgress />} {/* Show loading spinner while loading */}
+      {loading && <CircularProgress />}
       <form onSubmit={handleSubmit}>
         <TextField
           label="Company Name"
@@ -187,7 +186,7 @@ const Dashboard: React.FC = () => {
           </Button>
         )}
       </form>
-      {loading ? ( // Show loading spinner while loading
+      {loading ? (
         <CircularProgress />
       ) : (
         <>
