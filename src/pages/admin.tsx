@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react';
-import axios from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 import CircularProgress from '@mui/material/CircularProgress';
 import Table from '@mui/material/Table';
 import TableHead from '@mui/material/TableHead';
@@ -30,9 +30,23 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const [apiResponse, setApiResponse] = useState<ApiResponse[] | null>(null);
+  const [redirectToSignIn, setRedirectToSignIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [logo, setLogoFile] = useState<File | null>(null);
+
+  // Add an axios interceptor to handle 401 and 403 errors
+  axios.interceptors.response.use(
+    (response: AxiosResponse) => {
+      return response;
+    },
+    (error: AxiosError) => {
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        setRedirectToSignIn(true);
+      }
+      return Promise.reject(error);
+    }
+  );
 
   // Function to fetch data from the API endpoint
   const fetchData = useCallback(async () => {
