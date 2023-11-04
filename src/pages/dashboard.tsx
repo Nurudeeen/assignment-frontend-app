@@ -94,10 +94,32 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Function to fetch user's data
+  const fetchUserData = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${host}/user/fetch-own-data`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setApiResponse(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     const token = sessionStorage.getItem('token');
     if (!token) {
       navigate('/signin');
+    } else {
+      // Fetch user's data when the component mounts
+      fetchUserData();
     }
   }, [navigate]);
 
@@ -119,13 +141,21 @@ const Dashboard: React.FC = () => {
     }
   }, [redirectToSignIn, navigate]);
 
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate('/signin');
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <Typography variant="h4" component="h1" gutterBottom>
         User Dashboard
       </Typography>
+      <Button variant="contained" color="secondary" onClick={handleLogout} style={{ marginBottom: '1rem' }}>
+        Logout
+      </Button>
       <form onSubmit={handleSubmit}>
-        <TextField
+      <TextField
           label="Company Name"
           variant="outlined"
           name="companyName"
@@ -163,37 +193,43 @@ const Dashboard: React.FC = () => {
           </Button>
         )}
       </form>
-      {apiResponse && (
-        <div style={{ marginTop: '1rem' }}>
-          <Typography variant="h5">Company Name: {apiResponse.companyName}</Typography>
-          <TableContainer component={Paper} style={{ marginTop: '1rem' }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Products</TableCell>
-                  <TableCell>Users</TableCell>
-                  <TableCell>Percentage</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow>
-                  <TableCell>{apiResponse.email}</TableCell>
-                  <TableCell>{apiResponse.products}</TableCell>
-                  <TableCell>{apiResponse.users}</TableCell>
-                  <TableCell>{apiResponse.percentage}%</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {apiResponse.logo && (
-            <img
-              src={apiResponse.logo}
-              alt="Company Logo"
-              style={{ maxWidth: '100%', height: 'auto', marginTop: '1rem' }}
-            />
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <>
+          {apiResponse && (
+            <div style={{ marginTop: '1rem' }}>
+              <Typography variant="h5">Company Name: {apiResponse.companyName}</Typography>
+              <TableContainer component={Paper} style={{ marginTop: '1rem' }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Email</TableCell>
+                      <TableCell>Products</TableCell>
+                      <TableCell>Users</TableCell>
+                      <TableCell>Percentage</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>{apiResponse.email}</TableCell>
+                      <TableCell>{apiResponse.products}</TableCell>
+                      <TableCell>{apiResponse.users}</TableCell>
+                      <TableCell>{apiResponse.percentage}%</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              {apiResponse.logo && (
+                <img
+                  src={apiResponse.logo}
+                  alt="Company Logo"
+                  style={{ maxWidth: '100%', height: 'auto', marginTop: '1rem' }}
+                />
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
