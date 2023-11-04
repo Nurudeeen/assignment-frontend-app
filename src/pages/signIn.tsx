@@ -15,27 +15,29 @@ function SignIn() {
 const emailRef = useRef<HTMLInputElement>(null);
 const passwordRef = useRef<HTMLInputElement>(null);
 
-useEffect(() => {
-    if(sessionStorage.getItem('token')){
-        navigate('/dashboard');
-    }
-})
+// useEffect(() => {
+//     if(sessionStorage.getItem('token')){
+//         navigate('/dashboard');
+//     }
+// })
 
 const signIn = async () => {
-try {
-  await auth.signInWithEmailAndPassword(
-    emailRef.current!.value,
-    passwordRef.current!.value
-  )
-  const user = auth.currentUser;
-  if (user) {
-    const idToken = await user.getIdToken();
-    if(idToken){
-        sessionStorage.setItem('token', idToken);
+  try {
+    await auth.signInWithEmailAndPassword(
+        emailRef.current!.value,
+        passwordRef.current!.value
+    );
+    const user = auth.currentUser;
+    if (user) {
+        const idToken = await user.getIdToken();
+        console.log(idToken);
+        if (idToken) {
+            sessionStorage.setItem('token', idToken);
+            navigate('/dashboard'); // Navigate to the dashboard page on successful sign-in
+        }
     }
-  }
 } catch (error) {
-  console.error(error);
+    console.error(error);
 }
 };
 
