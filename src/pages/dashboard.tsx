@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import axios, { AxiosResponse, AxiosError } from 'axios';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -43,7 +43,6 @@ const Dashboard: React.FC = () => {
     percentage: 0,
   });
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
-  const [redirectToSignIn, setRedirectToSignIn] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +84,11 @@ const Dashboard: React.FC = () => {
       });
       setApiResponse(response.data);
     } catch (error) {
-      console.error(error);
+        if (axios.isAxiosError(error) && (error.response?.status === 403 || error.response?.status === 401)) {
+            navigate('/signin');
+          } else {
+            console.error(error);
+          }
     } finally {
       setLoading(false);
     }
@@ -105,21 +108,13 @@ const Dashboard: React.FC = () => {
       });
       setApiResponse(response.data);
     } catch (error) {
-      console.error(error);
+        if (axios.isAxiosError(error) && (error.response?.status === 403 || error.response?.status === 401)) {
+            navigate('/signin');
+          } else {
+            console.error(error);
+          }
     }
   };
-
-  axios.interceptors.response.use(
-    (response: AxiosResponse) => {
-      return response;
-    },
-    (error: AxiosError) => {
-      if (error.response?.status === 403 || error.response?.status === 401) {
-        setRedirectToSignIn(true);
-      }
-      return Promise.reject(error);
-    }
-  );
 
   useEffect(() => {
     const token = sessionStorage.getItem('token');
