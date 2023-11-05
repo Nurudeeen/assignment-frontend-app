@@ -30,23 +30,9 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const [apiResponse, setApiResponse] = useState<ApiResponse[] | null>(null);
-  const [redirectToSignIn, setRedirectToSignIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [logo, setLogoFile] = useState<File | null>(null);
-
-  // Add an axios interceptor to handle 401 and 403 errors
-  axios.interceptors.response.use(
-    (response: AxiosResponse) => {
-      return response;
-    },
-    (error: AxiosError) => {
-      if (error.response?.status === 403 || error.response?.status === 401) {
-        setRedirectToSignIn(true);
-      }
-      return Promise.reject(error);
-    }
-  );
 
   // Function to fetch data from the API endpoint
   const fetchData = useCallback(async () => {
@@ -57,19 +43,23 @@ const AdminDashboard: React.FC = () => {
     }
 
     try {
-      setLoading(true);
-      const response = await axios.get<ApiResponse[]>(`${host}/user/fetch-all-data`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setApiResponse(response.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
+        setLoading(true);
+        const response = await axios.get<ApiResponse[]>(`${host}/user/fetch-all-data`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setApiResponse(response.data);
+      } catch (error) {
+        if (axios.isAxiosError(error) && (error.response?.status === 403 || error.response?.status === 401)) {
+          navigate('/signin');
+        } else {
+          console.error(error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }, [navigate]);
 
   useEffect(() => {
     fetchData();
